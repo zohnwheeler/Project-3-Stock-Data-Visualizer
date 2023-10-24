@@ -5,15 +5,15 @@ from pygal.style import CleanStyle
 from urllib.parse import quote
 import os
 
-def get_stock_data(symbol, function, start_date, end_date, interval='daily'):
-    api_key = "ZD9X9OJCBFZXU3SJ"
+# Function to query Alpha Vantage API and fetch stock data
+def get_stock_data(symbol, function, start_date, end_date):
+    api_key = "ZD9X9OJCBFZXU3SJ" 
     base_url = "https://www.alphavantage.co/query"
-
+    
     params = {
         "function": function,
         "symbol": symbol,
         "apikey": api_key,
-        "interval": interval,
     }
 
     response = requests.get(base_url, params=params)
@@ -21,22 +21,16 @@ def get_stock_data(symbol, function, start_date, end_date, interval='daily'):
     if response.status_code == 200:
         data = response.json()
         # Filter data based on date range
-        time_series_key = f"Time Series ({interval})"
-        if time_series_key in data:
-            filtered_data = {}
-            for date, values in data[time_series_key].items():
-                if start_date <= date <= end_date:
-                    filtered_data[date] = values
-            return filtered_data
-        else:
-            print("Invalid time interval or data not available.")
-            return None
+        filtered_data = {}
+        for date, values in data["Time Series (Daily)"].items():
+            if start_date <= date <= end_date:
+                filtered_data[date] = values
+        return filtered_data
     else:
         print(f"Error fetching data. Status Code: {response.status_code}")
         return None
 
-
-
+# Function to generate and render the chart using Pygal
 def generate_chart(stock_data, chart_type, symbol):
     dates = []
     closing_prices = []
@@ -93,7 +87,7 @@ def main():
         except ValueError:
             print("Invalid date format. Please enter dates in YYYY-MM-DD format.")
     
-    stock_data = get_stock_data(symbol, function, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"), interval='weekly')
+    stock_data = get_stock_data(symbol, function, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"))
     if stock_data:
         chart_file_path = generate_chart(stock_data, chart_type, symbol)
         if chart_file_path:
